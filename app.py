@@ -12,14 +12,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Securely load API key from Streamlit Secrets (Hidden from everyone)
+# Securely load API key from Streamlit Secrets
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=api_key)
 except:
     api_key = None
 
-# Sidebar Controls
+# Sidebar Controls (Pure English UI)
 with st.sidebar:
     st.subheader("🇮🇳 Indian GPT Control")
     
@@ -30,7 +30,7 @@ with st.sidebar:
             new_chat_name = f"New Chat {counter}"
             counter += 1
         
-        st.session_state.chat_sessions[new_chat_name] = [{"role": "assistant", "content": "Namaste! Ami Indian GPT. Amake jekono question korte paro!"}]
+        st.session_state.chat_sessions[new_chat_name] = [{"role": "assistant", "content": "Hello! I am Indian GPT. How can I help you today?"}]
         st.session_state.current_chat = new_chat_name
         st.rerun()
 
@@ -44,18 +44,18 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-    st.caption("Indian GPT - Text Edition")
+    st.caption("Indian GPT - Direct Edition")
 
 # Initialize Session States
 if "chat_sessions" not in st.session_state:
     st.session_state.chat_sessions = {
-        "New Chat": [{"role": "assistant", "content": "Namaste! Ami Indian GPT. Amake jekono question korte paro!"}]
+        "New Chat": [{"role": "assistant", "content": "Hello! I am Indian GPT. How can I help you today?"}]
     }
 
 if "current_chat" not in st.session_state:
     st.session_state.current_chat = "New Chat"
 
-# Main Header
+# Main Header (Pure English UI)
 st.title("🇮🇳 Indian GPT")
 st.caption("Advanced Conversational Intelligence Platform")
 
@@ -68,7 +68,7 @@ for message in current_messages:
         st.markdown(message["content"])
 
 # Native Streamlit Chat Input
-prompt = st.chat_input("Kichu ekta jiggesh koro...")
+prompt = st.chat_input("Type your message here...")
 
 # Handle User Input & AI Response
 if prompt:

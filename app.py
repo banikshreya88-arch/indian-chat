@@ -1,5 +1,5 @@
 import streamlit as st
-import math
+import google.generativeai as genai
 
 # Page Config
 st.set_page_config(page_title="Indian GPT", page_icon="🇮🇳", layout="wide")
@@ -11,6 +11,13 @@ st.markdown("""
     .stSidebar { background-color: #f7f7f8; }
     </style>
 """, unsafe_allow_html=True)
+
+# Securely load API key from Streamlit Secrets
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+except:
+    api_key = None
 
 # Sidebar Controls
 with st.sidebar:
@@ -37,7 +44,7 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-    st.caption("Indian GPT - Smart Text Edition")
+    st.caption("Indian GPT - Text Edition")
 
 # Initialize Session States
 if "chat_sessions" not in st.session_state:
@@ -48,7 +55,7 @@ if "chat_sessions" not in st.session_state:
 if "current_chat" not in st.session_state:
     st.session_state.current_chat = "New Chat"
 
-# Main Header (Pure English UI)
+# Main Header
 st.title("🇮🇳 Indian GPT")
 st.caption("Advanced Conversational Intelligence Platform")
 
@@ -61,57 +68,44 @@ for message in current_messages:
         st.markdown(message["content"])
 
 # Native Streamlit Chat Input
-prompt = st.chat_input("Type your message here...")
+prompt = st.chat_input("Ask anything...")
 
-# Handle User Input & Smart Local Intelligence Engine
+# Handle User Input & AI Response
 if prompt:
-    # Dynamic Chat Titling
-    if st.session_state.current_chat.startswith("New Chat"):
-        new_name = prompt[:25] + ("..." if len(prompt) > 25 else "")
-        if new_name in st.session_state.chat_sessions:
-            new_name = f"{new_name} (2)"
-        
-        st.session_state.chat_sessions[new_name] = st.session_state.chat_sessions.pop(st.session_state.current_chat)
-        st.session_state.current_chat = new_name
-        current_messages = st.session_state.chat_sessions[new_name]
+    if not api_key:
+        st.error("⚠️ System configuration missing. Please check app secrets.")
+    else:
+        # Dynamic Chat Titling
+        if st.session_state.current_chat.startswith("New Chat"):
+            new_name = prompt[:25] + ("..." if len(prompt) > 25 else "")
+            if new_name in st.session_state.chat_sessions:
+                new_name = f"{new_name} (2)"
+            
+            st.session_state.chat_sessions[new_name] = st.session_state.chat_sessions.pop(st.session_state.current_chat)
+            st.session_state.current_chat = new_name
+            current_messages = st.session_state.chat_sessions[new_name]
 
-    # Save user message
-    user_msg = {"role": "user", "content": prompt}
-    current_messages.append(user_msg)
-    
-    with st.chat_message("user"):
-        st.markdown(prompt)
+        # Save user message
+        user_msg = {"role": "user", "content": prompt}
+        current_messages.append(user_msg)
+        
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-    # Generate Smart Response
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        
-        query = prompt.strip().lower()
-        full_response = ""
-        
-        # Smart evaluation for math like 2+2, 5*5, etc.
-        try:
-            # Clean query for simple math evaluation
-            clean_math = query.replace("?", "").strip()
-            if any(op in clean_math for op in ['+', '-', '*', '/', '^']) and all(c.isdigit() or c in "+-*/(). ^" for c in clean_math):
-                res = eval(clean_math.replace("^", "**"))
-                full_response = f"The answer to **{prompt.strip()}** is **{res}**."
-        except:
-            pass
-
-        if not full_response:
-            if "hello" in query or "hi" in query or "hey" in query:
-                full_response = "Hello! Welcome to Indian GPT. How can I assist you with your project or questions today?"
-            elif "how are you" in query:
-                full_response = "I'm operating at peak performance! Ready to help you out."
-            elif "python" in query or "code" in query:
-                full_response = "Here is a clean Python code example for you:\n```python\n# Sample Python Function\ndef calculate_sum(a, b):\n    return a + b\n\nprint(calculate_sum(10, 20))\n```"
-            elif "name" in query:
-                full_response = "I am Indian GPT, your high-performance standalone assistant."
-            else:
-                full_response = f"Regarding your query about **'{prompt}'**: Indian GPT is fully online and ready to assist. You can ask me coding questions, math calculations, text formatting, or general topics!"
-        
-        message_placeholder.markdown(full_response)
-        
-        assistant_msg = {"role": "assistant", "content": full_response}
-        current_messages.append(assistant_msg)
+        # Generate Real AI Response
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
+            
+            try:
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                response = model.generate_content(prompt)
+                full_response = response.text
+                
+                message_placeholder.markdown(full_response)
+                
+                assistant_msg = {"role": "assistant", "content": full_response}
+                current_messages.append(assistant_msg)
+                
+            except Exception as e:
+                st.error(f"Error: {e}")

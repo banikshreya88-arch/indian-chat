@@ -1,7 +1,5 @@
-
 import streamlit as st
 import google.generativeai as genai
-from PIL import Image
 
 # Page Config
 st.set_page_config(page_title="Indian GPT", page_icon="🇮🇳", layout="wide")
@@ -17,6 +15,7 @@ st.markdown("""
 # Securely load API key from Streamlit Secrets (Hidden from everyone)
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
 except:
     api_key = None
 
@@ -31,17 +30,9 @@ with st.sidebar:
             new_chat_name = f"New Chat {counter}"
             counter += 1
         
-        st.session_state.chat_sessions[new_chat_name] = [{"role": "assistant", "content": "Namaste! Ami Indian GPT. Amake lekha ba chobi diye jekono question korte paro!"}]
+        st.session_state.chat_sessions[new_chat_name] = [{"role": "assistant", "content": "Namaste! Ami Indian GPT. Amake jekono question korte paro!"}]
         st.session_state.current_chat = new_chat_name
         st.rerun()
-
-    st.markdown("---")
-    st.subheader("📁 Upload Image (Vision AI)")
-    uploaded_image = st.file_uploader("Choose an image", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
-    
-    if uploaded_image:
-        img_preview = Image.open(uploaded_image)
-        st.image(img_preview, caption="Preview", use_container_width=True)
 
     st.markdown("---")
     st.subheader("💬 Chat History")
@@ -53,12 +44,12 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-    st.caption("Indian GPT - Autonomous Edition")
+    st.caption("Indian GPT - Text Edition")
 
 # Initialize Session States
 if "chat_sessions" not in st.session_state:
     st.session_state.chat_sessions = {
-        "New Chat": [{"role": "assistant", "content": "Namaste! Ami Indian GPT. Amake lekha ba chobi diye jekono question korte paro!"}]
+        "New Chat": [{"role": "assistant", "content": "Namaste! Ami Indian GPT. Amake jekono question korte paro!"}]
     }
 
 if "current_chat" not in st.session_state:
@@ -66,7 +57,7 @@ if "current_chat" not in st.session_state:
 
 # Main Header
 st.title("🇮🇳 Indian GPT")
-st.caption("Advanced Multimodal Intelligence Platform")
+st.caption("Advanced Conversational Intelligence Platform")
 
 # Get current messages based on selected session
 current_messages = st.session_state.chat_sessions[st.session_state.current_chat]
@@ -75,11 +66,9 @@ current_messages = st.session_state.chat_sessions[st.session_state.current_chat]
 for message in current_messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-        if "image" in message and message["image"]:
-            st.image(message["image"])
 
 # Native Streamlit Chat Input
-prompt = st.chat_input("Kichu ekta jiggesh koro ba chobi dao...")
+prompt = st.chat_input("Kichu ekta jiggesh koro...")
 
 # Handle User Input & AI Response
 if prompt:
@@ -98,17 +87,10 @@ if prompt:
 
         # Save user message
         user_msg = {"role": "user", "content": prompt}
-        pil_img = None
-        if uploaded_image:
-            pil_img = Image.open(uploaded_image)
-            user_msg["image"] = pil_img
-        
         current_messages.append(user_msg)
         
         with st.chat_message("user"):
             st.markdown(prompt)
-            if pil_img:
-                st.image(pil_img)
 
         # Generate AI Response
         with st.chat_message("assistant"):
@@ -116,14 +98,8 @@ if prompt:
             full_response = ""
             
             try:
-                genai.configure(api_key=api_key)
                 model = genai.GenerativeModel('gemini-1.5-flash')
-                
-                contents = [prompt]
-                if pil_img:
-                    contents.append(pil_img)
-                
-                response = model.generate_content(contents)
+                response = model.generate_content(prompt)
                 full_response = response.text
                 
                 message_placeholder.markdown(full_response)
@@ -133,4 +109,3 @@ if prompt:
                 
             except Exception as e:
                 st.error(f"Error: {e}")
-                

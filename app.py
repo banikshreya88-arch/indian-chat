@@ -1,10 +1,9 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
-import urllib.parse
 
 # Page Config
-st.set_page_config(page_title="Indian GPT - Vision AI", page_icon="🇮🇳", layout="wide")
+st.set_page_config(page_title="Indian GPT", page_icon="🇮🇳", layout="wide")
 
 # Custom CSS for clean UI
 st.markdown("""
@@ -14,13 +13,16 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Sidebar for API Key & Settings
+# Securely load API key from Streamlit Secrets (Hidden from everyone)
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+except:
+    api_key = None
+
+# Sidebar Controls
 with st.sidebar:
-    st.subheader("🔑 AI Configuration")
-    api_key = st.text_input("Enter Google Gemini API Key", type="password", help="Free API key pabe Google AI Studio theke")
-    st.markdown("[Get Free Gemini API Key](https://aistudio.google.com/)")
+    st.subheader("🇮🇳 Indian GPT Control")
     
-    st.markdown("---")
     if st.button("➕ New Chat", use_container_width=True):
         new_chat_name = "New Chat"
         counter = 1
@@ -28,7 +30,7 @@ with st.sidebar:
             new_chat_name = f"New Chat {counter}"
             counter += 1
         
-        st.session_state.chat_sessions[new_chat_name] = [{"role": "assistant", "content": "Hi bro! Ami Indian GPT. Amake lekha ba chobi diye jekono question korte paro!"}]
+        st.session_state.chat_sessions[new_chat_name] = [{"role": "assistant", "content": "Namaste! Ami Indian GPT. Amake lekha ba chobi diye jekono question korte paro!"}]
         st.session_state.current_chat = new_chat_name
         st.rerun()
 
@@ -38,7 +40,7 @@ with st.sidebar:
     
     if uploaded_image:
         img_preview = Image.open(uploaded_image)
-        st.image(img_preview, caption="Uploaded Image Preview", use_container_width=True)
+        st.image(img_preview, caption="Preview", use_container_width=True)
 
     st.markdown("---")
     st.subheader("💬 Chat History")
@@ -50,19 +52,20 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-    st.caption("Indian GPT - Multimodal Vision Edition")
+    st.caption("Indian GPT - Autonomous Edition")
 
 # Initialize Session States
 if "chat_sessions" not in st.session_state:
     st.session_state.chat_sessions = {
-        "New Chat": [{"role": "assistant", "content": "Hi bro! Ami Indian GPT. Amake lekha ba chobi diye jekono question korte paro!"}]
+        "New Chat": [{"role": "assistant", "content": "Namaste! Ami Indian GPT. Amake lekha ba chobi diye jekono question korte paro!"}]
     }
 
 if "current_chat" not in st.session_state:
     st.session_state.current_chat = "New Chat"
 
 # Main Header
-st.title("🇮🇳 Indian GPT (Vision Enabled)")
+st.title("🇮🇳 Indian GPT")
+st.caption("Advanced Multimodal Intelligence Platform")
 
 # Get current messages based on selected session
 current_messages = st.session_state.chat_sessions[st.session_state.current_chat]
@@ -75,12 +78,12 @@ for message in current_messages:
             st.image(message["image"])
 
 # Native Streamlit Chat Input
-prompt = st.chat_input("Chobi ba lekha niye kichu jiggesh koro...")
+prompt = st.chat_input("Kichu ekta jiggesh koro ba chobi dao...")
 
 # Handle User Input & AI Response
 if prompt:
     if not api_key:
-        st.warning("⚠️ Bhai, prothome sidebar-e tor Google Gemini API Key-ta din!")
+        st.error("⚠️ System configuration missing. Please configure app secrets.")
     else:
         # Dynamic Chat Titling
         if st.session_state.current_chat.startswith("New Chat"):
@@ -106,7 +109,7 @@ if prompt:
             if pil_img:
                 st.image(pil_img)
 
-        # Generate AI Response using Gemini Vision
+        # Generate AI Response
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response = ""
@@ -129,3 +132,4 @@ if prompt:
                 
             except Exception as e:
                 st.error(f"Error: {e}")
+                

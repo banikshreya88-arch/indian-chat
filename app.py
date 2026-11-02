@@ -1,5 +1,4 @@
 import streamlit as st
-import google.generativeai as genai
 
 # Page Config
 st.set_page_config(page_title="Indian GPT", page_icon="🇮🇳", layout="wide")
@@ -12,14 +11,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Securely load API key from Streamlit Secrets
-try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=api_key)
-except:
-    api_key = None
-
-# Sidebar Controls (Pure English UI)
+# Sidebar Controls
 with st.sidebar:
     st.subheader("🇮🇳 Indian GPT Control")
     
@@ -44,7 +36,7 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-    st.caption("Indian GPT - Direct Edition")
+    st.caption("Indian GPT - Simple Edition")
 
 # Initialize Session States
 if "chat_sessions" not in st.session_state:
@@ -55,7 +47,7 @@ if "chat_sessions" not in st.session_state:
 if "current_chat" not in st.session_state:
     st.session_state.current_chat = "New Chat"
 
-# Main Header (Pure English UI)
+# Main Header
 st.title("🇮🇳 Indian GPT")
 st.caption("Advanced Conversational Intelligence Platform")
 
@@ -70,42 +62,33 @@ for message in current_messages:
 # Native Streamlit Chat Input
 prompt = st.chat_input("Type your message here...")
 
-# Handle User Input & AI Response
+# Handle User Input & Response (Mock/Demo mode without any external API keys)
 if prompt:
-    if not api_key:
-        st.error("⚠️ System configuration missing. Please configure app secrets.")
-    else:
-        # Dynamic Chat Titling
-        if st.session_state.current_chat.startswith("New Chat"):
-            new_name = prompt[:25] + ("..." if len(prompt) > 25 else "")
-            if new_name in st.session_state.chat_sessions:
-                new_name = f"{new_name} (2)"
-            
-            st.session_state.chat_sessions[new_name] = st.session_state.chat_sessions.pop(st.session_state.current_chat)
-            st.session_state.current_chat = new_name
-            current_messages = st.session_state.chat_sessions[new_name]
-
-        # Save user message
-        user_msg = {"role": "user", "content": prompt}
-        current_messages.append(user_msg)
+    # Dynamic Chat Titling
+    if st.session_state.current_chat.startswith("New Chat"):
+        new_name = prompt[:25] + ("..." if len(prompt) > 25 else "")
+        if new_name in st.session_state.chat_sessions:
+            new_name = f"{new_name} (2)"
         
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        st.session_state.chat_sessions[new_name] = st.session_state.chat_sessions.pop(st.session_state.current_chat)
+        st.session_state.current_chat = new_name
+        current_messages = st.session_state.chat_sessions[new_name]
 
-        # Generate AI Response
-        with st.chat_message("assistant"):
-            message_placeholder = st.empty()
-            full_response = ""
-            
-            try:
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                response = model.generate_content(prompt)
-                full_response = response.text
-                
-                message_placeholder.markdown(full_response)
-                
-                assistant_msg = {"role": "assistant", "content": full_response}
-                current_messages.append(assistant_msg)
-                
-            except Exception as e:
-                st.error(f"Error: {e}")
+    # Save user message
+    user_msg = {"role": "user", "content": prompt}
+    current_messages.append(user_msg)
+    
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Generate Response directly without keys
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        
+        # Simulated intelligent conversational response
+        full_response = f"Namaste! I received your message: '{prompt}'. Indian GPT is running successfully without any API keys or complex setups!"
+        
+        message_placeholder.markdown(full_response)
+        
+        assistant_msg = {"role": "assistant", "content": full_response}
+        current_messages.append(assistant_msg)
